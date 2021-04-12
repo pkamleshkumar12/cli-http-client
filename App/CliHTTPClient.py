@@ -1,5 +1,5 @@
 from cement.core.foundation import CementApp
-from App.Controllers.MainController import MainController
+from App.controllers.MainController import MainController
 
 
 class CliHTTPClient(CementApp):

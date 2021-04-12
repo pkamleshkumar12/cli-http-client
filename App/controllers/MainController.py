@@ -1,6 +1,7 @@
 from cement.core.controller import CementBaseController, expose
 
-from App.Helper.RequestHelper import RequestHelper
+from App.services.RequestService import RequestService
+from App.Configuration import Configuration
 
 
 class MainController(CementBaseController):
@@ -15,12 +16,14 @@ class MainController(CementBaseController):
             (['-vn', '--versionNumber'],
              dict(action='store', help='Version Name')),
             (['-uc', '--useCase'],
-             dict(action='store', help='Use Case'))
+             dict(action='store', help='Use Case')),
+            (['-env', '--environment'],
+             dict(action='store', help='Environment'))
         ]
 
     @expose(hide=True)
     def default(self):
-        self.app.log.info('Inside MyBaseController.default()')
+        self.app.log.info('Inside MainController.default()')
         if self.app.pargs.systemName:
             print("Received option: systemName => %s" % self.app.pargs.systemName)
 
@@ -35,12 +38,17 @@ class MainController(CementBaseController):
             print("Received option: versionNumber => %s" % self.app.pargs.versionNumber)
         if self.app.pargs.useCase:
             print("Received option: useCase => %s" % self.app.pargs.useCase)
+        if self.app.pargs.environment:
+            print("Received option: environment => %s" % self.app.pargs.environment)
 
-        r = RequestHelper(self.app.pargs.systemName,
-                          self.app.pargs.interfaceName,
-                          self.app.pargs.versionNumber,
-                          self.app.pargs.useCase)
-        r.getRequest()
+        config = Configuration(self.app.pargs.systemName,
+                               self.app.pargs.interfaceName,
+                               self.app.pargs.versionNumber,
+                               self.app.pargs.useCase,
+                               self.app.pargs.environment)
+
+        r = RequestService(config)
+        r.get_request()
 
     @expose(aliases=['rpost', 'POST'], help="POST Method")
     def post(self):
@@ -53,9 +61,18 @@ class MainController(CementBaseController):
             print("Received option: versionNumber => %s" % self.app.pargs.versionNumber)
         if self.app.pargs.useCase:
             print("Received option: useCase => %s" % self.app.pargs.useCase)
+        if self.app.pargs.environment:
+            print("Received option: environment => %s" % self.app.pargs.environment)
 
-        r = RequestHelper(self.app.pargs.systemName,
-                          self.app.pargs.interfaceName,
-                          self.app.pargs.versionNumber,
-                          self.app.pargs.useCase)
-        r.postRequest()
+        config = Configuration(self.app.pargs.systemName,
+                               self.app.pargs.interfaceName,
+                               self.app.pargs.versionNumber,
+                               self.app.pargs.useCase,
+                               self.app.pargs.environment)
+
+        r = RequestService(config)
+        r.post_request()
+
+        @expose(aliases=['configbysystem'], help="Retrieve all the config by system")
+        def config_by_systems():
+            pass
