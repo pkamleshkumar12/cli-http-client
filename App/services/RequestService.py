@@ -5,7 +5,6 @@ from App.services import IOService
 
 
 class RequestService:
-
     path = None
 
     def __init__(self, config):
@@ -17,6 +16,7 @@ class RequestService:
         self.env = self.load_env_variables()
         self.path = self.load_path()
         self.pathVariable = self.load_path_variable()
+        self.queryParameters = self.load_query_parameter()
 
     def get_request(self):
         url = self.get_request_url()
@@ -56,7 +56,10 @@ class RequestService:
                 str(self.pathVariable.get('path'))
             ]
         )
-        return '/'.join([host, path])
+        url = '/'.join([host, path])
+        if self.get_query_parameter is not None:
+            url += "?" + self.get_query_parameter()
+        return url
 
     def post_request_url(self):
         host = ''.join(
@@ -108,6 +111,26 @@ class RequestService:
              self.config.versionNumber,
              self.config.useCase,
              'PathVariable.json'
+             )
+        filePath = os.path.sep.join(t)
+        return IOService.load_json(filePath)
+
+    def get_query_parameter(self):
+        queryString = None
+        if len(self.queryParameters) != 0:
+            queryString = ""
+            for key in self.queryParameters:
+                queryString += key + "=" + self.queryParameters[key]
+
+        return queryString
+
+    def load_query_parameter(self):
+        t = ('data',
+             self.config.systemName,
+             self.config.interfaceName,
+             self.config.versionNumber,
+             self.config.useCase,
+             'RequestQuery.json'
              )
         filePath = os.path.sep.join(t)
         return IOService.load_json(filePath)
