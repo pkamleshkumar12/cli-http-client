@@ -120,7 +120,10 @@ class RequestService:
         if len(self.queryParameters) != 0:
             queryString = ""
             for key in self.queryParameters:
-                queryString += key + "=" + self.queryParameters[key]
+                queryString += key + "=" + self.queryParameters[key] + "&"
+
+        if len(self.queryParameters) > 0:
+            queryString = queryString[:-1]
 
         return queryString
 
