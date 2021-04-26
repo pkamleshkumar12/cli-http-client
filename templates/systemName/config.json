@@ -1,0 +1,14 @@
+{
+  "env": {
+    "sit": {
+      "protocol": "https",
+      "host":"606c16c9f8678400172e7274.mockapi.io",
+      "port":""
+    },
+    "uat": {
+      "protocol": "https",
+      "host":"606c16c9f8678400172e7274.mockapi.io",
+      "port":""
+    }
+  }
+}
