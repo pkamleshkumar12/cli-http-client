@@ -42,7 +42,7 @@ class RequestService:
                 if rows[q_pos]:
                     r = requests.get(url + '? ' + rows[q_pos])
                 else:
-                    r = requests.get(url + '? ' + rows[q_pos])
+                    r = requests.get(url)
 
                 print(r.text)
                 logger.info(r.json())
