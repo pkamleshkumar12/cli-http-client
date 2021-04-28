@@ -2,7 +2,7 @@ from cement import App
 from cement import App, Controller, ex
 from App.Configuration import Configuration
 from App.services.RequestService import RequestService
-
+from cement.utils.misc import init_defaults
 class Base(Controller):
     class Meta:
         label = 'base'
@@ -30,6 +30,14 @@ class Base(Controller):
              {'help': 'Environment',
               'action': 'store',
               'dest': 'environment', }),
+            (['--loadRequestFileFrom'],
+             {'help': 'file location to load requests',
+              'action': 'store',
+              'dest': 'loadRequestFileFrom', }),
+            (['--exportLogsTo'],
+             {'help': 'export logs to give file name ',
+              'action': 'store',
+              'dest': 'exportLogsTo', }),
         ]
     )
     def get(self):
@@ -44,13 +52,18 @@ class Base(Controller):
             self.app.log.info("Received option: useCase => %s" % self.app.pargs.useCase)
         if self.app.pargs.environment:
             self.app.log.info("Received option: environment => %s" % self.app.pargs.environment)
+        if self.app.pargs.loadRequestFileFrom:
+            self.app.log.info("Received option: loadRequestFileFrom => %s" % self.app.pargs.loadRequestFileFrom)
+        if self.app.pargs.exportLogsTo:
+            self.app.log.info("Received option: exportLogsTo => %s" % self.app.pargs.exportLogsTo)
 
         config = Configuration(self.app.pargs.systemName,
                                self.app.pargs.interfaceName,
                                self.app.pargs.versionNumber,
                                self.app.pargs.useCase,
-                               self.app.pargs.environment
-                               )
+                               self.app.pargs.environment,
+                               self.app.pargs.loadRequestFileFrom,
+                               self.app.pargs.exportLogsTo)
 
         r = RequestService(config)
         r.get_request()
@@ -92,16 +105,22 @@ class Base(Controller):
             self.app.log.info("Received option: useCase => %s" % self.app.pargs.useCase)
         if self.app.pargs.environment:
             self.app.log.info("Received option: environment => %s" % self.app.pargs.environment)
+        if self.app.pargs.loadRequestFileFrom:
+            self.app.log.info("Received option: loadRequestFileFrom => %s" % self.app.pargs.loadRequestFileFrom)
+        if self.app.pargs.exportLogsTo:
+            self.app.log.info("Received option: exportLogsTo => %s" % self.app.pargs.exportLogsTo)
 
         config = Configuration(self.app.pargs.systemName,
                                self.app.pargs.interfaceName,
                                self.app.pargs.versionNumber,
                                self.app.pargs.useCase,
-                               self.app.pargs.environment
-                               )
+                               self.app.pargs.environment,
+                               self.app.pargs.loadRequestFileFrom,
+                               self.app.pargs.exportLogsTo)
 
         r = RequestService(config)
         r.post_request()
+
 
 
 class CliHTTPClient(App):
@@ -113,4 +132,7 @@ class CliHTTPClient(App):
 
 
 with CliHTTPClient() as app:
+    defaults = init_defaults('myapp', 'log.logging')
+    defaults['log.logging']['file'] = 'my.log'
     app.run()
+

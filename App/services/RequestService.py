@@ -1,11 +1,13 @@
 import requests
 import os
-
+from datetime import datetime
 from App.services import IOService
+import logging
 
 
 class RequestService:
     path = None
+    logger = None
 
     def __init__(self, config):
         """
@@ -17,12 +19,55 @@ class RequestService:
         self.path = self.load_path()
         self.pathVariable = self.load_path_variable()
         self.queryParameters = self.load_query_parameter()
+        logging.basicConfig(filename=self.set_log_file_path(), filemode='w',
+                            format='%(name)s - %(levelname)s - %(message)s')
 
     def get_request(self):
-        url = self.get_request_url()
-        print('url ->', url)
-        r = requests.get(url)
-        print(r.text)
+        logger = logging.getLogger()
+
+        # Now we are going to Set the threshold of logger to DEBUG
+        logger.setLevel(logging.DEBUG)
+        logger.info(self.config)
+
+        if self.config.loadRequestFileFrom:
+            csv_list = IOService.load_csv(self.get_csv_request_file_path())
+
+            # appending extra column to csv_list with query parameter
+            csv_list = self.append_query_parameters(csv_list)
+            url = self.get_request_url(False)
+
+            q_pos = len(csv_list[0])
+            r = None
+            for rows in csv_list[1:]:
+                if rows[q_pos]:
+                    r = requests.get(url + '? ' + rows[q_pos])
+                else:
+                    r = requests.get(url + '? ' + rows[q_pos])
+
+                print(r.text)
+                logger.info(r.json())
+
+        else:
+            url = self.get_request_url(True)
+            print('url ->', url)
+            r = requests.get(url)
+            print(r.text)
+
+    # FIXME param in request need not be formed
+
+    def append_query_parameters(self, csv_list):
+
+        # header is the header in the CSV file; Ignoring the first 2 headers used for flags
+        keys = csv_list[0][2:]
+        for row in range(1, len(csv_list)):
+            parameters = ''
+            j = 2
+            for key in keys:
+                if csv_list[row][j]:
+                    parameters += key + '=' + csv_list[row][j] + '&'
+                    j += 1
+            csv_list[row].append(parameters[:-1])
+        return csv_list
 
     def post_request(self):
         payload = IOService.load_json(self.get_request_file_path())
@@ -41,7 +86,16 @@ class RequestService:
              'RequestBody.json')
         return os.path.sep.join(t)
 
-    def get_request_url(self):
+    def get_csv_request_file_path(self):
+        t = ('data',
+             self.config.systemName,
+             self.config.interfaceName,
+             self.config.versionNumber,
+             self.config.useCase,
+             self.config.loadRequestFileFrom)
+        return os.path.sep.join(t)
+
+    def get_request_url(self, queryFromConfiguration):
         host = ''.join(
             [
                 str(self.env.get('protocol')),
@@ -49,16 +103,17 @@ class RequestService:
                 str(self.env.get('host')),
 
             ])
+        if self.env.get('port'):
+            host += ":" + self.env.get('port')
 
-        path = "/".join(
-            [
-                str(self.path.get('baseUrl')),
-                str(self.pathVariable.get('path'))
-            ]
-        )
+        path = str(self.path.get('baseUrl'))
+        if self.pathVariable.get('path'):
+            path += "/" + str(self.pathVariable.get('path'))
+
         url = '/'.join([host, path])
-        if self.get_query_parameter is not None:
+        if self.get_query_parameter is not None and queryFromConfiguration:
             url += "?" + self.get_query_parameter()
+
         return url
 
     def post_request_url(self):
@@ -69,13 +124,16 @@ class RequestService:
                 str(self.env.get('host')),
 
             ])
+        if self.env.get('port'):
+            host += ":" + self.env.get('port')
 
-        path = "/".join(
-            [
-                str(self.path.get('baseUrl'))
-            ]
-        )
-        return '/'.join([host, path])
+        path = str(self.path.get('baseUrl'))
+        if self.pathVariable.get('path'):
+            path += "/" + str(self.pathVariable.get('path'))
+
+        url = '/'.join([host, path])
+
+        return url
 
     def get_query_file_path(self):
         t = ('data',
@@ -137,3 +195,10 @@ class RequestService:
              )
         filePath = os.path.sep.join(t)
         return IOService.load_json(filePath)
+
+    def set_log_file_path(self):
+        if self.config.exportLogsTo:
+            return os.path.join('logs',self.config.exportLogsTo)
+        else:
+            now = datetime.now()
+            return os.path.join('logs', self.config.interfaceName + "_" + now.strftime("%H:%M:%S"))
