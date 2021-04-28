@@ -19,10 +19,10 @@ class Configuration:
 
     def __str__(self):
         return "System Name: {0}" \
-               "Interface Name: {1}" \
-               "Version Number: {2}" \
-               "useCase: {3}" \
-               "environment: {4}"\
+               " Interface Name: {1}" \
+               " Version Number: {2}" \
+               " UseCase: {3}" \
+               " Environment: {4}"\
             .format(self.systemName,
                     self.interfaceName,
                     self.versionNumber,

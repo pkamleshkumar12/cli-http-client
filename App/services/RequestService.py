@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from App.services import IOService
 import logging
-
+import sys
 
 class RequestService:
     path = None
@@ -19,8 +19,7 @@ class RequestService:
         self.path = self.load_path()
         self.pathVariable = self.load_path_variable()
         self.queryParameters = self.load_query_parameter()
-        logging.basicConfig(filename=self.set_log_file_path(), filemode='w',
-                            format='%(name)s - %(levelname)s - %(message)s')
+        self.setup_custom_logger()
 
     def get_request(self):
         logger = logging.getLogger()
@@ -36,6 +35,7 @@ class RequestService:
             csv_list = self.append_query_parameters(csv_list)
             url = self.get_request_url(False)
 
+            # q_pos is last column of the csv_list, where query is appended
             q_pos = len(csv_list[0])
             r = None
             for rows in csv_list[1:]:
@@ -49,9 +49,9 @@ class RequestService:
 
         else:
             url = self.get_request_url(True)
-            print('url ->', url)
             r = requests.get(url)
             print(r.text)
+            logger.info(r.json())
 
     # FIXME param in request need not be formed
 
@@ -202,3 +202,16 @@ class RequestService:
         else:
             now = datetime.now()
             return os.path.join('logs', self.config.interfaceName + "_" + now.strftime("%H:%M:%S"))
+
+    def setup_custom_logger(self):
+        formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',
+                                      datefmt='%Y-%m-%d %H:%M:%S')
+        handler = logging.FileHandler(self.set_log_file_path(), mode='w')
+        handler.setFormatter(formatter)
+        screen_handler = logging.StreamHandler(stream=sys.stdout)
+        screen_handler.setFormatter(formatter)
+        logger = logging.getLogger(None)
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
+        logger.addHandler(screen_handler)
+        return logger
