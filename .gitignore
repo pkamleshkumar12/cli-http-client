@@ -133,3 +133,4 @@ dmypy.json
 
 # Data include system configuration
 data
+logs
