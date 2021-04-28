@@ -40,7 +40,7 @@ class RequestService:
             r = None
             for rows in csv_list[1:]:
                 if rows[q_pos]:
-                    r = requests.get(url + '? ' + rows[q_pos])
+                    r = requests.get(url + '?' + rows[q_pos])
                 else:
                     r = requests.get(url)
 
