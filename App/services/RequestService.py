@@ -5,6 +5,7 @@ from App.services import IOService
 import logging
 import sys
 
+
 class RequestService:
     path = None
     logger = None
@@ -19,6 +20,7 @@ class RequestService:
         self.path = self.load_path()
         self.pathVariable = self.load_path_variable()
         self.queryParameters = self.load_query_parameter()
+        self.headers = self.load_headers()
         self.setup_custom_logger()
 
     def get_request(self):
@@ -27,7 +29,7 @@ class RequestService:
         # Now we are going to Set the threshold of logger to DEBUG
         logger.setLevel(logging.DEBUG)
         logger.info(self.config)
-
+        headers = self.headers
         if self.config.loadRequestFileFrom:
             csv_list = IOService.load_csv(self.get_csv_request_file_path())
 
@@ -40,16 +42,16 @@ class RequestService:
             r = None
             for rows in csv_list[1:]:
                 if rows[q_pos]:
-                    r = requests.get(url + '?' + rows[q_pos])
+                    r = requests.get(url + '?' + rows[q_pos], headers=headers)
                 else:
-                    r = requests.get(url)
+                    r = requests.get(url, headers=headers)
 
                 print(r.text)
                 logger.info(r.json())
 
         else:
             url = self.get_request_url(True)
-            r = requests.get(url)
+            r = requests.get(url, headers=headers)
             print(r.text)
             logger.info(r.json())
 
@@ -196,9 +198,20 @@ class RequestService:
         filePath = os.path.sep.join(t)
         return IOService.load_json(filePath)
 
+    def load_headers(self):
+        t = ('data',
+             self.config.systemName,
+             self.config.interfaceName,
+             self.config.versionNumber,
+             self.config.useCase,
+             'Header.json'
+             )
+        filePath = os.path.sep.join(t)
+        return IOService.load_json(filePath)
+
     def set_log_file_path(self):
         if self.config.exportLogsTo:
-            return os.path.join('logs',self.config.exportLogsTo)
+            return os.path.join('logs', self.config.exportLogsTo)
         else:
             now = datetime.now()
             return os.path.join('logs', self.config.interfaceName + "_" + now.strftime("%H%M%S"))
