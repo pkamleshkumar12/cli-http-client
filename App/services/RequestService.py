@@ -201,7 +201,7 @@ class RequestService:
             return os.path.join('logs',self.config.exportLogsTo)
         else:
             now = datetime.now()
-            return os.path.join('logs', self.config.interfaceName + "_" + now.strftime("%H:%M:%S"))
+            return os.path.join('logs', self.config.interfaceName + "_" + now.strftime("%H%M%S"))
 
     def setup_custom_logger(self):
         formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',
