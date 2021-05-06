@@ -55,8 +55,7 @@ class RequestService:
         else:
             AuthHandler(self.config, self.headers)
             url = self.get_request_url(True)
-            headers = self.headers
-            r = requests.get(url, headers=headers)
+            r = requests.get(url, headers=self.headers)
             print(r.text)
             logger.info(r.json())
 
