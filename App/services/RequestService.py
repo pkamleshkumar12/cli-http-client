@@ -111,7 +111,7 @@ class RequestService:
             path += "/" + str(self.pathVariable.get('path'))
 
         url = '/'.join([host, path])
-        if self.get_query_parameter is not None and queryFromConfiguration:
+        if self.get_query_parameter() is not None and queryFromConfiguration:
             url += "?" + self.get_query_parameter()
 
         return url
