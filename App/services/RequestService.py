@@ -5,6 +5,8 @@ from App.services import IOService
 import logging
 import sys
 
+from App.services.AuthHandler import AuthHandler
+
 
 class RequestService:
     path = None
@@ -29,7 +31,7 @@ class RequestService:
         # Now we are going to Set the threshold of logger to DEBUG
         logger.setLevel(logging.DEBUG)
         logger.info(self.config)
-        headers = self.headers
+
         if self.config.loadRequestFileFrom:
             csv_list = IOService.load_csv(self.get_csv_request_file_path())
 
@@ -40,6 +42,7 @@ class RequestService:
             # q_pos is last column of the csv_list, where query is appended
             q_pos = len(csv_list[0])
             r = None
+            headers = self.headers
             for rows in csv_list[1:]:
                 if rows[q_pos]:
                     r = requests.get(url + '?' + rows[q_pos], headers=headers)
@@ -50,7 +53,9 @@ class RequestService:
                 logger.info(r.json())
 
         else:
+            AuthHandler(self.config, self.headers)
             url = self.get_request_url(True)
+            headers = self.headers
             r = requests.get(url, headers=headers)
             print(r.text)
             logger.info(r.json())
@@ -72,6 +77,7 @@ class RequestService:
         return csv_list
 
     def post_request(self):
+
         payload = IOService.load_json(self.get_request_file_path())
         url = self.post_request_url()
         print('payload -> ', payload)
