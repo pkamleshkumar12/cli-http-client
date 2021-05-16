@@ -54,12 +54,7 @@ the chain.
 
 class BasicAuthenticationHandler(AbstractHandler):
     def handle(self, request: Any, headers, configs) -> str:
-
-        if request.get("type") == "BasicAuth":
-            headers["new_key_b"] = "new_value_b"
-            return f"Handled at BasicAuthenticationHandler {request}"
-        else:
-            return super().handle(request, headers, configs)
+        super().handle(request)
 
 
 class CustomSLAuthenticationHandler(AbstractHandler):
@@ -89,6 +84,7 @@ class CustomSLAuthenticationHandler(AbstractHandler):
 
             r = requests.post(url, data=payload, headers=auth_headers)
             response_json = r.json()
+
             authorization_token = response_json.get('userDetails').get('utoken')
             print("token from the authorization server: ", authorization_token)
             headers["Authorization"] = authorization_token
