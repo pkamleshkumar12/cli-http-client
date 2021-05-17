@@ -1,3 +1,5 @@
+import json
+
 import requests
 import os
 from datetime import datetime
@@ -76,12 +78,13 @@ class RequestService:
         return csv_list
 
     def post_request(self):
-
+        AuthHandler(self.config, self.headers)
         payload = IOService.load_json(self.get_request_file_path())
         url = self.post_request_url()
+        print('     ')
         print('payload -> ', payload)
         print('url ->', url)
-        r = requests.post(url, data=payload)
+        r = requests.post(url, data=json.dumps(payload), headers=self.headers)
         print(r.text)
 
     def get_request_file_path(self):

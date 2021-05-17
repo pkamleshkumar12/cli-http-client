@@ -54,7 +54,10 @@ the chain.
 
 class BasicAuthenticationHandler(AbstractHandler):
     def handle(self, request: Any, headers, configs) -> str:
-        super().handle(request)
+        if request.get("type") == "Basic":
+            pass
+        else:
+            super().handle(request, headers, configs)
 
 
 class CustomSLAuthenticationHandler(AbstractHandler):
@@ -88,9 +91,38 @@ class CustomSLAuthenticationHandler(AbstractHandler):
             authorization_token = response_json.get('userDetails').get('utoken')
             print("token from the authorization server: ", authorization_token)
             headers["Authorization"] = authorization_token
-            return f"Handled at CustomSLAuthenticationHandler {request} "
+            return f"Handled at CustomSLAuthenticationHandler {request}"
         else:
-            return super().handle(request)
+            return super().handle(request, headers, configs)
+
+
+class CustomSFDCOauth(AbstractHandler):
+
+    def handle(self, request: Any, headers, configs) -> str:
+
+        if request.get("type") == "Custom_Auth_SFDC":
+            print('Handled at CustomSFDCOauth')
+            payload = {
+                'grant_type': request.get('grant_type'),
+                'client_id': request.get('client_id'),
+                'client_secret': request.get('client_secret'),
+                'username': request.get('username'),
+                'password': request.get('password')
+            }
+
+            url = request.get("authorization_url")
+
+            response = requests.post(url, data=payload)
+            response_json = response.json()
+            print("response from SFDC auth server: ", response_json)
+
+            access_token = response_json.get('access_token')
+            headers['Authorization'] = "Bearer 00D9D0000008dtW!AQcAQEH26adi7Fq1fYbynQGCYnhKKvtBvUzaD" \
+                                       ".L9SFNrS6_xi6mn_NMLQ35gFuBQhMXdlH0947LwTn4SIvfYzNO2NwBhDJkb "
+            return "yes"
+
+        else:
+            return super().handle(request, headers, configs)
 
 
 def client_code(handler: Handler, auth_json, headers, config) -> None:
@@ -98,8 +130,6 @@ def client_code(handler: Handler, auth_json, headers, config) -> None:
     The client code is usually suited to work with a single handler. In most
     cases, it is not even aware that the handler is part of a chain.
     """
-
-    # auth_type = auth_json.get("type")
 
     result = handler.handle(auth_json, headers, config)
     if result:
@@ -112,13 +142,14 @@ class AuthHandler:
     def __init__(self, config: Configuration, headers: dict):
 
         basicAuthHandler = BasicAuthenticationHandler()
-        customerSLAuthHandler = CustomSLAuthenticationHandler()
+        customSLAuthHandler = CustomSLAuthenticationHandler()
+        customSFDCAuthHandler = CustomSFDCOauth()
 
-        basicAuthHandler.set_next(customerSLAuthHandler)
+        basicAuthHandler.set_next(customSLAuthHandler).set_next(customSFDCAuthHandler)
 
         # The client should be able to send a request to any handler
 
-        print("Chain: Basic Auth > Customer SL Auth")
+        print("Chain: Basic Auth > Custom SL Auth > Custom SFDC Auth")
 
         t = ('data',
              config.systemName,
