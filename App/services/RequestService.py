@@ -81,10 +81,21 @@ class RequestService:
         AuthHandler(self.config, self.headers)
         payload = IOService.load_json(self.get_request_file_path())
         url = self.post_request_url()
-        print('     ')
         print('payload -> ', payload)
         print('url ->', url)
         r = requests.post(url, data=json.dumps(payload), headers=self.headers)
+        print(r.text)
+
+    def delete_request(self):
+        AuthHandler(self.config, self.headers)
+        payload = IOService.load_json(self.get_request_file_path())
+        url = self.post_request_url()
+        print('payload -> ', payload)
+        print('url ->', url)
+        r = requests.delete(
+            url,
+            data=json.dumps(payload),
+            headers=self.headers)
         print(r.text)
 
     def get_request_file_path(self):
