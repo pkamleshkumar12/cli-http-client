@@ -7,7 +7,7 @@
     },
     "uat": {
       "protocol": "https",
-      "host":"606c16c9f8678400172e7274.mockapi.io",
+      "host":"onlinestore-uat.business.starhub.com",
       "port":""
     }
   }

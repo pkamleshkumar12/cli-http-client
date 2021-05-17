@@ -54,10 +54,7 @@ the chain.
 
 class BasicAuthenticationHandler(AbstractHandler):
     def handle(self, request: Any, headers, configs) -> str:
-        if request.get("type") == "Basic":
-            pass
-        else:
-            super().handle(request, headers, configs)
+        super().handle(request, headers, configs)
 
 
 class CustomSLAuthenticationHandler(AbstractHandler):
@@ -65,6 +62,7 @@ class CustomSLAuthenticationHandler(AbstractHandler):
 
         if request.get("type") == "Custom_Auth_SL":
 
+            print('Handled at CustomSLOauth')
             t = ('data',
                  configs.systemName,
                  configs.interfaceName,
@@ -85,9 +83,10 @@ class CustomSLAuthenticationHandler(AbstractHandler):
 
             url = request.get("authorization_url")
 
-            r = requests.post(url, data=payload, headers=auth_headers)
+            r = requests.post(url, json=payload, headers=auth_headers)
             response_json = r.json()
-
+            print("r: ", r)
+            print("response:", r.json())
             authorization_token = response_json.get('userDetails').get('utoken')
             print("token from the authorization server: ", authorization_token)
             headers["Authorization"] = authorization_token
@@ -117,8 +116,7 @@ class CustomSFDCOauth(AbstractHandler):
             print("response from SFDC auth server: ", response_json)
 
             access_token = response_json.get('access_token')
-            headers['Authorization'] = "Bearer 00D9D0000008dtW!AQcAQEH26adi7Fq1fYbynQGCYnhKKvtBvUzaD" \
-                                       ".L9SFNrS6_xi6mn_NMLQ35gFuBQhMXdlH0947LwTn4SIvfYzNO2NwBhDJkb "
+            headers['Authorization'] = "Bearer " + access_token
             return "yes"
 
         else:
@@ -148,8 +146,6 @@ class AuthHandler:
         basicAuthHandler.set_next(customSLAuthHandler).set_next(customSFDCAuthHandler)
 
         # The client should be able to send a request to any handler
-
-        print("Chain: Basic Auth > Custom SL Auth > Custom SFDC Auth")
 
         t = ('data',
              config.systemName,
