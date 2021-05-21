@@ -1,9 +1,7 @@
 from cement import App
 from cement import App, Controller, ex
 from App.Configuration import Configuration
-from App.services.RequestService import RequestService
 from cement.utils.misc import init_defaults
-
 from App.services.RequestStrategy import RequestStrategyBySOAP, Context, RequestStrategyByREST
 
 
