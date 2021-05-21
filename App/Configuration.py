@@ -1,6 +1,8 @@
 class Configuration:
 
-    def __init__(self, systemName, interfaceName, versionNumber, useCase, environment, loadRequestFileFrom, exportLogsTo):
+    def __init__(self, systemName, interfaceName, versionNumber,
+                 useCase, environment, loadRequestFileFrom,
+                 exportLogsTo, webService):
         """
 
             :type systemName: str
@@ -13,6 +15,7 @@ class Configuration:
         self.environment = environment
         self.loadRequestFileFrom = loadRequestFileFrom
         self.exportLogsTo = exportLogsTo
+        self.webService = webService
 
     def get_config(self):
         return self
