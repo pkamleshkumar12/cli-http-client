@@ -27,3 +27,10 @@ def load_csv(filePath):
             csv_in_list.append(list(row))
 
     return csv_in_list
+
+
+def load_xml(filePath):
+
+    with open(filePath, 'r') as f:
+        data = f.read()
+    return data

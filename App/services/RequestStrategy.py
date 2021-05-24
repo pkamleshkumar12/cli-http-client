@@ -82,6 +82,14 @@ class RequestStrategy(ABC):
 
 class RequestStrategyBySOAP(RequestStrategy):
 
+    def __init__(self):
+        self.config = None
+        self.headers = None
+        self.env = None
+        self.path = None
+        self.pathVariable = None
+        self.queryParameters = None
+
     def send_get_request(self, configuration,
                          logger) -> str:
         logger.info(configuration)
@@ -89,11 +97,107 @@ class RequestStrategyBySOAP(RequestStrategy):
 
     def send_post_request(self, configuration,
                           logger) -> str:
-        logger.info(configuration)
+        self.config = configuration
+        self.env = self.load_env_variables()
+        self.path = self.load_path()
+        self.headers = self.load_headers()
+        self.pathVariable = self.load_path_variable()
+        self.queryParameters = self.load_query_parameter()
+
+        logger.info(self.config)
+        print("configuration: ", configuration)
+        print("headers: ", self.headers)
+        AuthHandler(self.config, self.headers)
+        url = self.post_request_url()
+
+        payload = IOService.load_xml(self.get_request_file_path())
+        print('payload -> ', payload)
+        print('url ->', url)
+        r = requests.post(url, data=payload, headers=self.headers)
+        print(r.text)
         return "SOAP Post Request Executed"
 
     def send_delete_request(self, configuration: Configuration, logger):
         return "SOAP Delete Request Executed"
+
+    def post_request_url(self):
+        host = ''.join(
+            [
+                str(self.env.get('protocol')),
+                "://",
+                str(self.env.get('host')),
+
+            ])
+        if self.env.get('port'):
+            host += ":" + self.env.get('port')
+
+        path = str(self.path.get('baseUrl'))
+        if self.pathVariable.get('path'):
+            path += "/" + str(self.pathVariable.get('path'))
+
+        url = '/'.join([host, path])
+
+        return url
+
+    def get_request_file_path(self):
+        t = ('data',
+             self.config.systemName,
+             self.config.interfaceName,
+             self.config.versionNumber,
+             self.config.useCase,
+             'RequestBody.xml')
+        return os.path.sep.join(t)
+
+    def load_env_variables(self):
+        t = ('data',
+             self.config.systemName,
+             'config.json'
+             )
+        envFilePath = os.path.sep.join(t)
+        json_env = IOService.load_json(envFilePath)
+        return json_env.get('env').get(self.config.environment)
+
+    def load_path(self):
+        t = ('data',
+             self.config.systemName,
+             self.config.interfaceName,
+             'path.json'
+             )
+        filePath = os.path.sep.join(t)
+        return IOService.load_json(filePath)
+
+    def load_path_variable(self):
+        t = ('data',
+             self.config.systemName,
+             self.config.interfaceName,
+             self.config.versionNumber,
+             self.config.useCase,
+             'PathVariable.json'
+             )
+        filePath = os.path.sep.join(t)
+        return IOService.load_json(filePath)
+
+    def load_headers(self):
+        t = ('data',
+             self.config.systemName,
+             self.config.interfaceName,
+             self.config.versionNumber,
+             self.config.useCase,
+             'Header.json'
+             )
+        filePath = os.path.sep.join(t)
+        return IOService.load_json(filePath)
+
+    def load_query_parameter(self):
+        t = ('data',
+             self.config.systemName,
+             self.config.interfaceName,
+             self.config.versionNumber,
+             self.config.useCase,
+             'RequestQuery.json'
+             )
+        filePath = os.path.sep.join(t)
+        return IOService.load_json(filePath)
 
 
 class RequestStrategyByREST(RequestStrategy):
@@ -266,16 +370,3 @@ class RequestStrategyByREST(RequestStrategy):
              self.config.useCase,
              'RequestBody.json')
         return os.path.sep.join(t)
-
-# if __name__ == "__main__":
-#
-#     ws = "REST"
-#     context = Context(RequestStrategyBySOAP())
-#     if ws == "SOAP":
-#         print("Client: Strategy is set to SOAP")
-#         context.do_get_request()
-#         print()
-#     else:
-#         print("Client: Strategy is set to REST")
-#         context.strategy = RequestStrategyByREST()
-#         context.do_get_request()
