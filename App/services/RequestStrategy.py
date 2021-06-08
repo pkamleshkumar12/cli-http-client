@@ -256,8 +256,28 @@ class RequestStrategyByREST(RequestStrategy):
 
         return "REST Post Request Executed!!"
 
-    def send_delete_request(self, configuration: Configuration, logger):
-        pass
+    def send_delete_request(self, configuration: Configuration,
+                            logger) -> str:
+        self.config = configuration
+        self.env = self.load_env_variables()
+        self.path = self.load_path()
+        self.headers = self.load_headers()
+        self.pathVariable = self.load_path_variable()
+
+        logger.info(self.config)
+        print("configuration: ", configuration)
+        print("headers: ", self.headers)
+
+        AuthHandler(self.config, self.headers)
+        payload = IOService.load_json(self.get_request_file_path())
+        url = self.post_request_url()
+        print('payload -> ', payload)
+        print('url ->', url)
+        r = requests.post(url, data=json.dumps(payload), headers=self.headers)
+        print(r.text)
+        logger.info(r.json())
+
+        return "REST delete Request Executed!!"
 
     def load_env_variables(self):
         t = ('data',
