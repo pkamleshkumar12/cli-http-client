@@ -1,14 +1,7 @@
 import os
-from os import listdir
-from os.path import isfile, join
 import pandas as pd
-from distutils.dir_util import copy_tree
 from mdutils.mdutils import MdUtils
-from mdutils import Html
 import simplejson
-import shutil
-import json
-
 import sys
 
 if __name__ == "__main__":
@@ -173,3 +166,4 @@ for index, row in df1.iterrows():
     mdFile.write("\n")
     mdFile.write("--------------------------------------------------------------------------------------------")
 
+mdFile.create_md_file()
