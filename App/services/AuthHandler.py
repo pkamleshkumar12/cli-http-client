@@ -5,7 +5,6 @@ import os
 from App.Configuration import Configuration
 from App.services import IOService
 import requests
-import json
 
 
 class Handler(ABC):
@@ -62,35 +61,42 @@ class CustomSLAuthenticationHandler(AbstractHandler):
 
         if request.get("type") == "Custom_Auth_SL":
 
-            print('Handled at CustomSLOauth')
-            t = ('data',
-                 configs.systemName,
-                 configs.interfaceName,
-                 configs.versionNumber,
-                 configs.useCase,
-                 'AuthBody.json')
-            auth_body_file_path = os.path.sep.join(t)
-            payload = IOService.load_json(auth_body_file_path)
+            try:
+                print('Handled at CustomSLOauth')
+                t = ('data',
+                     configs.systemName,
+                     configs.interfaceName,
+                     configs.versionNumber,
+                     configs.useCase,
+                     'AuthBody.json')
+                auth_body_file_path = os.path.sep.join(t)
+                payload = IOService.load_json(auth_body_file_path)
 
-            t = ('data',
-                 configs.systemName,
-                 configs.interfaceName,
-                 configs.versionNumber,
-                 configs.useCase,
-                 'AuthHeader.json')
-            auth_header_file_path = os.path.sep.join(t)
-            auth_headers = IOService.load_json(auth_header_file_path)
+                t = ('data',
+                     configs.systemName,
+                     configs.interfaceName,
+                     configs.versionNumber,
+                     configs.useCase,
+                     'AuthHeader.json')
+                auth_header_file_path = os.path.sep.join(t)
+                auth_headers = IOService.load_json(auth_header_file_path)
 
-            url = request.get("authorization_url")
+                url = request.get("authorization_url")
 
-            r = requests.post(url, json=payload, headers=auth_headers)
-            response_json = r.json()
-            print("r: ", r)
-            print("response:", r.json())
-            authorization_token = response_json.get('userDetails').get('utoken')
-            print("token from the authorization server: ", authorization_token)
-            headers["Authorization"] = authorization_token
-            return f"Handled at CustomSLAuthenticationHandler {request}"
+                r = requests.post(url, json=payload, headers=auth_headers)
+                response_json = r.json()
+                print("r: ", r)
+                print("response:", r.json())
+                authorization_token = response_json.get('userDetails').get('utoken')
+                print("token from the authorization server: ", authorization_token)
+                headers["Authorization"] = authorization_token
+                return f"Handled at CustomSLAuthenticationHandler {request}"
+            except FileNotFoundError as fnf_error:
+                SystemExit(fnf_error)
+            except Exception as e:
+                print("Exception occurred while handling Custom_Auth_SL")
+                SystemExit(e)
+
         else:
             return super().handle(request, headers, configs)
 
@@ -100,24 +106,30 @@ class CustomSFDCOauth(AbstractHandler):
     def handle(self, request: Any, headers, configs) -> str:
 
         if request.get("type") == "Custom_Auth_SFDC":
-            print('Handled at CustomSFDCOauth')
-            payload = {
-                'grant_type': request.get('grant_type'),
-                'client_id': request.get('client_id'),
-                'client_secret': request.get('client_secret'),
-                'username': request.get('username'),
-                'password': request.get('password')
-            }
+            try:
+                print('Handled at CustomSFDCOauth')
+                payload = {
+                    'grant_type': request.get('grant_type'),
+                    'client_id': request.get('client_id'),
+                    'client_secret': request.get('client_secret'),
+                    'username': request.get('username'),
+                    'password': request.get('password')
+                }
 
-            url = request.get("authorization_url")
+                url = request.get("authorization_url")
 
-            response = requests.post(url, data=payload)
-            response_json = response.json()
-            print("response from SFDC auth server: ", response_json)
+                response = requests.post(url, data=payload)
+                response_json = response.json()
+                print("response from SFDC auth server: ", response_json)
 
-            access_token = response_json.get('access_token')
-            headers['Authorization'] = "Bearer " + access_token
-            return "yes"
+                access_token = response_json.get('access_token')
+                headers['Authorization'] = "Bearer " + access_token
+                return "yes"
+            except FileNotFoundError as fnf_error:
+                SystemExit(fnf_error)
+            except Exception as e:
+                print("Exception occurred while handling Custom_Auth_SFDC")
+                SystemExit(e)
 
         else:
             return super().handle(request, headers, configs)
@@ -130,6 +142,7 @@ def client_code(handler: Handler, auth_json, headers, config) -> None:
     """
 
     result = handler.handle(auth_json, headers, config)
+    print('result: ', result)
     if result:
         print(f"  {result}", end="")
     else:

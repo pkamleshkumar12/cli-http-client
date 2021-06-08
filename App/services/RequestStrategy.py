@@ -1,7 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from App import Configuration
-from typing import Any
 import json
 import requests
 import os
@@ -97,47 +96,65 @@ class RequestStrategyBySOAP(RequestStrategy):
 
     def send_post_request(self, configuration,
                           logger) -> str:
-        self.config = configuration
-        self.env = self.load_env_variables()
-        self.path = self.load_path()
-        self.headers = self.load_headers()
-        self.pathVariable = self.load_path_variable()
-        self.queryParameters = self.load_query_parameter()
+        try:
+            self.config = configuration
+            self.env = self.load_env_variables()
+            self.path = self.load_path()
+            self.headers = self.load_headers()
+            self.pathVariable = self.load_path_variable()
+            self.queryParameters = self.load_query_parameter()
+        except Exception as e:
+            print("Exception occurred while loading configurations at send_post_request")
+            SystemExit(e)
 
-        logger.info(self.config)
-        print("configuration: ", configuration)
-        print("headers: ", self.headers)
-        AuthHandler(self.config, self.headers)
-        url = self.post_request_url()
+            logger.info(self.config)
+            print("configuration: ", configuration)
+            print("headers: ", self.headers)
+            AuthHandler(self.config, self.headers)
+            url = self.post_request_url()
 
-        payload = IOService.load_xml(self.get_request_file_path())
-        print('payload -> ', payload)
-        print('url ->', url)
-        r = requests.post(url, data=payload, headers=self.headers)
-        print(r.text)
-        return "SOAP Post Request Executed"
+        try:
+            payload = IOService.load_xml(self.get_request_file_path())
+            print('payload -> ', payload)
+            print('url ->', url)
+            r = requests.post(url, data=payload, headers=self.headers)
+            print(r.text)
+            return "SOAP Post Request Executed"
+        except requests.exceptions.HTTPError as err:
+            raise SystemExit(err)
+        except Exception as e:
+            SystemExit(e)
 
     def send_delete_request(self, configuration: Configuration, logger):
         return "SOAP Delete Request Executed"
 
     def post_request_url(self):
-        host = ''.join(
-            [
-                str(self.env.get('protocol')),
-                "://",
-                str(self.env.get('host')),
+        try:
+            host = ''.join(
+                [
+                    str(self.env.get('protocol')),
+                    "://",
+                    str(self.env.get('host')),
 
-            ])
-        if self.env.get('port'):
-            host += ":" + self.env.get('port')
+                ])
+            if self.env.get('port'):
+                host += ":" + self.env.get('port')
 
-        path = str(self.path.get('baseUrl'))
-        if self.pathVariable.get('path'):
-            path += "/" + str(self.pathVariable.get('path'))
+            path = str(self.path.get('baseUrl'))
+            if self.pathVariable.get('path'):
+                path += "/" + str(self.pathVariable.get('path'))
 
-        url = '/'.join([host, path])
+            url = '/'.join([host, path])
 
-        return url
+            return url
+        except AttributeError as ae:
+            print("Exception occurred! please check if systemName, interfaceName, env is given properly")
+            SystemExit(ae)
+        except FileNotFoundError as fe:
+            SystemExit(fe)
+        except Exception as e:
+            print("Exception occurred!")
+            SystemExit(e)
 
     def get_request_file_path(self):
         t = ('data',
@@ -149,13 +166,23 @@ class RequestStrategyBySOAP(RequestStrategy):
         return os.path.sep.join(t)
 
     def load_env_variables(self):
-        t = ('data',
-             self.config.systemName,
-             'config.json'
-             )
-        envFilePath = os.path.sep.join(t)
-        json_env = IOService.load_json(envFilePath)
-        return json_env.get('env').get(self.config.environment)
+        try:
+            t = ('data',
+                 self.config.systemName,
+                 'config.json'
+                 )
+            envFilePath = os.path.sep.join(t)
+            json_env = IOService.load_json(envFilePath)
+            return json_env.get('env').get(self.config.environment)
+        except AttributeError as ae:
+            print("Exception occurred! please pass appropriate arguments filepath:", envFilePath)
+            SystemExit(ae)
+        except FileNotFoundError as fe:
+            print("Exception occurred! File Not found at :", envFilePath)
+            SystemExit(fe)
+        except Exception as e:
+            print("Exception occurred!")
+            SystemExit(e)
 
     def load_path(self):
         t = ('data',
@@ -212,81 +239,118 @@ class RequestStrategyByREST(RequestStrategy):
 
     def send_get_request(self, configuration: Configuration,
                          logger) -> str:
-        self.config = configuration
-        self.env = self.load_env_variables()
-        self.path = self.load_path()
-        self.headers = self.load_headers()
-        self.pathVariable = self.load_path_variable()
-        self.queryParameters = self.load_query_parameter()
+        try:
+            self.config = configuration
+            self.env = self.load_env_variables()
+            self.path = self.load_path()
+            self.headers = self.load_headers()
+            self.pathVariable = self.load_path_variable()
+            self.queryParameters = self.load_query_parameter()
 
-        logger.info(self.config)
-        print("configuration: ", configuration)
-        print("headers: ", self.headers)
+            logger.info(self.config)
+            print("configuration: ", configuration)
+            print("headers: ", self.headers)
+        except Exception as e:
+            print("Exception occurred while loading configurations at send_get_request")
+            SystemExit(e)
 
-        AuthHandler(self.config, self.headers)
-        url = self.get_request_url()
-        print("url: ", url)
-        r = requests.get(url, headers=self.headers)
-        print("response: ", r.text)
-        logger.info(r.json())
+        try:
+            AuthHandler(self.config, self.headers)
+            url = self.get_request_url()
+            print("url: ", url)
+            r = requests.get(url, headers=self.headers)
+            print("response: ", r.text)
+            logger.info(r.json())
 
-        return "REST Get Request Executed!!"
+            return "REST Get Request Executed!!"
+        except requests.exceptions.HTTPError as err:
+            raise SystemExit(err)
+        except Exception as e:
+            SystemExit(e)
 
     def send_post_request(self, configuration,
                           logger) -> str:
-        self.config = configuration
-        self.env = self.load_env_variables()
-        self.path = self.load_path()
-        self.headers = self.load_headers()
-        self.pathVariable = self.load_path_variable()
-        self.queryParameters = self.load_query_parameter()
+        try:
+            self.config = configuration
+            self.env = self.load_env_variables()
+            self.path = self.load_path()
+            self.headers = self.load_headers()
+            self.pathVariable = self.load_path_variable()
+            self.queryParameters = self.load_query_parameter()
 
-        logger.info(self.config)
-        print("configuration: ", configuration)
-        print("headers: ", self.headers)
+            logger.info(self.config)
+            print("configuration: ", configuration)
+            print("headers: ", self.headers)
+        except Exception as e:
+            print("Exception occurred while loading configurations at send_post_request")
+            SystemExit(e)
 
-        AuthHandler(self.config, self.headers)
-        payload = IOService.load_json(self.get_request_file_path())
-        url = self.post_request_url()
-        print('payload -> ', payload)
-        print('url ->', url)
-        r = requests.post(url, data=json.dumps(payload), headers=self.headers)
-        print(r.text)
-        logger.info(r.json())
+        try:
+            AuthHandler(self.config, self.headers)
+            payload = IOService.load_json(self.get_request_file_path())
+            url = self.post_request_url()
+            print('payload -> ', payload)
+            print('url ->', url)
+            r = requests.post(url, data=json.dumps(payload), headers=self.headers)
+            print(r.text)
+            logger.info(r.json())
 
-        return "REST Post Request Executed!!"
+            return "REST Post Request Executed!!"
+        except requests.exceptions.HTTPError as err:
+            raise SystemExit(err)
+        except Exception as e:
+            SystemExit(e)
 
     def send_delete_request(self, configuration: Configuration,
                             logger) -> str:
-        self.config = configuration
-        self.env = self.load_env_variables()
-        self.path = self.load_path()
-        self.headers = self.load_headers()
-        self.pathVariable = self.load_path_variable()
+        try:
+            self.config = configuration
+            self.env = self.load_env_variables()
+            self.path = self.load_path()
+            self.headers = self.load_headers()
+            self.pathVariable = self.load_path_variable()
 
-        logger.info(self.config)
-        print("configuration: ", configuration)
-        print("headers: ", self.headers)
+            logger.info(self.config)
+            print("configuration: ", configuration)
+            print("headers: ", self.headers)
+        except Exception as e:
+            print("Exception occurred while loading configurations at send_delete_request")
+            SystemExit(e)
 
-        AuthHandler(self.config, self.headers)
-        payload = IOService.load_json(self.get_request_file_path())
-        url = self.post_request_url()
-        print('payload -> ', payload)
-        print('url ->', url)
-        r = requests.post(url, data=json.dumps(payload), headers=self.headers)
-        print(r.text)
-        logger.info(r.json())
+        try:
+            AuthHandler(self.config, self.headers)
+            payload = IOService.load_json(self.get_request_file_path())
+            url = self.post_request_url()
+            print('payload -> ', payload)
+            print('url ->', url)
+            r = requests.post(url, data=json.dumps(payload), headers=self.headers)
+            print(r.text)
+            logger.info(r.json())
 
-        return "REST delete Request Executed!!"
+            return "REST delete Request Executed!!"
+        except requests.exceptions.HTTPError as err:
+            raise SystemExit(err)
+        except Exception as e:
+            SystemExit(e)
 
     def load_env_variables(self):
-        t = ('data',
-             self.config.systemName,
-             'config.json'
-             )
-        envFilePath = os.path.sep.join(t)
-        json_env = IOService.load_json(envFilePath)
-        return json_env.get('env').get(self.config.environment)
+        try:
+            t = ('data',
+                 self.config.systemName,
+                 'config.json'
+                 )
+            envFilePath = os.path.sep.join(t)
+            json_env = IOService.load_json(envFilePath)
+            return json_env.get('env').get(self.config.environment)
+        except AttributeError as ae:
+            print("Exception occurred! please pass appropriate arguments filepath:", envFilePath)
+            SystemExit(ae)
+        except FileNotFoundError as fe:
+            print("Exception occurred! File Not found at :", envFilePath)
+            SystemExit(fe)
+        except Exception as e:
+            print("Exception occurred!")
+            SystemExit(e)
 
     def load_path(self):
         t = ('data',
@@ -331,44 +395,58 @@ class RequestStrategyByREST(RequestStrategy):
         return IOService.load_json(filePath)
 
     def get_request_url(self):
-        host = ''.join(
-            [
-                str(self.env.get('protocol')),
-                "://",
-                str(self.env.get('host')),
+        try:
+            host = ''.join(
+                [
+                    str(self.env.get('protocol')),
+                    "://",
+                    str(self.env.get('host')),
 
-            ])
-        if self.env.get('port'):
-            host += ":" + self.env.get('port')
+                ])
+            if self.env.get('port'):
+                host += ":" + self.env.get('port')
 
-        path = str(self.path.get('baseUrl'))
-        if self.pathVariable.get('path'):
-            path += "/" + str(self.pathVariable.get('path'))
+            path = str(self.path.get('baseUrl'))
+            if self.pathVariable.get('path'):
+                path += "/" + str(self.pathVariable.get('path'))
 
-        url = '/'.join([host, path])
-        if self.get_query_parameter() is not None:
-            url += "?" + self.get_query_parameter()
+            url = '/'.join([host, path])
+            if self.get_query_parameter() is not None:
+                url += "?" + self.get_query_parameter()
 
-        return url
+            return url
+        except AttributeError as ae:
+            print("Exception occurred! please check if systemName, interfaceName, env is given properly")
+            SystemExit(ae)
+        except Exception as e:
+            print("Exception occurred at get_request_url()")
+            SystemExit(e)
 
     def post_request_url(self):
-        host = ''.join(
-            [
-                str(self.env.get('protocol')),
-                "://",
-                str(self.env.get('host')),
+        try:
+            host = ''.join(
+                [
+                    str(self.env.get('protocol')),
+                    "://",
+                    str(self.env.get('host')),
 
-            ])
-        if self.env.get('port'):
-            host += ":" + self.env.get('port')
+                ])
+            if self.env.get('port'):
+                host += ":" + self.env.get('port')
 
-        path = str(self.path.get('baseUrl'))
-        if self.pathVariable.get('path'):
-            path += "/" + str(self.pathVariable.get('path'))
+            path = str(self.path.get('baseUrl'))
+            if self.pathVariable.get('path'):
+                path += "/" + str(self.pathVariable.get('path'))
 
-        url = '/'.join([host, path])
+            url = '/'.join([host, path])
 
-        return url
+            return url
+        except AttributeError as ae:
+            print("Exception occurred! please check if systemName, interfaceName, env is given properly")
+            SystemExit(ae)
+        except Exception as e:
+            print("Exception occurred at post_request_url()")
+            SystemExit(e)
 
     def get_query_parameter(self):
         queryString = None
