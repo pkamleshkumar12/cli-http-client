@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import sys
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 import os
@@ -96,6 +98,7 @@ class CustomSLAuthenticationHandler(AbstractHandler):
             except Exception as e:
                 print("Exception occurred while handling Custom_Auth_SL")
                 SystemExit(e)
+                sys.exit()
 
         else:
             return super().handle(request, headers, configs)
@@ -127,9 +130,11 @@ class CustomSFDCOauth(AbstractHandler):
                 return "yes"
             except FileNotFoundError as fnf_error:
                 SystemExit(fnf_error)
+                sys.exit()
             except Exception as e:
                 print("Exception occurred while handling Custom_Auth_SFDC")
                 SystemExit(e)
+                sys.exit()
 
         else:
             return super().handle(request, headers, configs)

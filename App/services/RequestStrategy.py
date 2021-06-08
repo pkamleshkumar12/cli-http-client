@@ -44,17 +44,23 @@ class Context:
         print(result)
 
     def setup_custom_logger(self):
-        formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',
-                                      datefmt='%Y-%m-%d %H:%M:%S')
-        handler = logging.FileHandler(self.set_log_file_path(), mode='w')
-        handler.setFormatter(formatter)
-        screen_handler = logging.StreamHandler(stream=sys.stdout)
-        screen_handler.setFormatter(formatter)
-        logger = logging.getLogger(None)
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
-        logger.addHandler(screen_handler)
-        return logger
+        try:
+            formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',
+                                          datefmt='%Y-%m-%d %H:%M:%S')
+            handler = logging.FileHandler(self.set_log_file_path(), mode='w')
+            handler.setFormatter(formatter)
+            screen_handler = logging.StreamHandler(stream=sys.stdout)
+            screen_handler.setFormatter(formatter)
+            logger = logging.getLogger(None)
+            logger.setLevel(logging.DEBUG)
+            logger.addHandler(handler)
+            logger.addHandler(screen_handler)
+            return logger
+        except Exception as e:
+            print("Exception occurred while configuring logs")
+            print("Hint: try creating 'logs' directory in the root directory")
+            SystemExit(e)
+            sys.exit()
 
     def set_log_file_path(self):
         if self.config.exportLogsTo:
@@ -106,6 +112,7 @@ class RequestStrategyBySOAP(RequestStrategy):
         except Exception as e:
             print("Exception occurred while loading configurations at send_post_request")
             SystemExit(e)
+            sys.exit()
 
             logger.info(self.config)
             print("configuration: ", configuration)
@@ -124,6 +131,7 @@ class RequestStrategyBySOAP(RequestStrategy):
             raise SystemExit(err)
         except Exception as e:
             SystemExit(e)
+            sys.exit()
 
     def send_delete_request(self, configuration: Configuration, logger):
         return "SOAP Delete Request Executed"
@@ -150,11 +158,14 @@ class RequestStrategyBySOAP(RequestStrategy):
         except AttributeError as ae:
             print("Exception occurred! please check if systemName, interfaceName, env is given properly")
             SystemExit(ae)
+            sys.exit()
         except FileNotFoundError as fe:
             SystemExit(fe)
+            sys.exit()
         except Exception as e:
             print("Exception occurred!")
             SystemExit(e)
+            sys.exit()
 
     def get_request_file_path(self):
         t = ('data',
@@ -177,12 +188,15 @@ class RequestStrategyBySOAP(RequestStrategy):
         except AttributeError as ae:
             print("Exception occurred! please pass appropriate arguments filepath:", envFilePath)
             SystemExit(ae)
+            sys.exit()
         except FileNotFoundError as fe:
             print("Exception occurred! File Not found at :", envFilePath)
             SystemExit(fe)
+            sys.exit()
         except Exception as e:
             print("Exception occurred!")
             SystemExit(e)
+            sys.exit()
 
     def load_path(self):
         t = ('data',
@@ -253,6 +267,7 @@ class RequestStrategyByREST(RequestStrategy):
         except Exception as e:
             print("Exception occurred while loading configurations at send_get_request")
             SystemExit(e)
+            sys.exit()
 
         try:
             AuthHandler(self.config, self.headers)
@@ -267,6 +282,7 @@ class RequestStrategyByREST(RequestStrategy):
             raise SystemExit(err)
         except Exception as e:
             SystemExit(e)
+            sys.exit()
 
     def send_post_request(self, configuration,
                           logger) -> str:
@@ -284,6 +300,7 @@ class RequestStrategyByREST(RequestStrategy):
         except Exception as e:
             print("Exception occurred while loading configurations at send_post_request")
             SystemExit(e)
+            sys.exit()
 
         try:
             AuthHandler(self.config, self.headers)
@@ -300,6 +317,7 @@ class RequestStrategyByREST(RequestStrategy):
             raise SystemExit(err)
         except Exception as e:
             SystemExit(e)
+            sys.exit()
 
     def send_delete_request(self, configuration: Configuration,
                             logger) -> str:
@@ -316,6 +334,7 @@ class RequestStrategyByREST(RequestStrategy):
         except Exception as e:
             print("Exception occurred while loading configurations at send_delete_request")
             SystemExit(e)
+            sys.exit()
 
         try:
             AuthHandler(self.config, self.headers)
@@ -332,6 +351,7 @@ class RequestStrategyByREST(RequestStrategy):
             raise SystemExit(err)
         except Exception as e:
             SystemExit(e)
+            sys.exit()
 
     def load_env_variables(self):
         try:
@@ -345,12 +365,15 @@ class RequestStrategyByREST(RequestStrategy):
         except AttributeError as ae:
             print("Exception occurred! please pass appropriate arguments filepath:", envFilePath)
             SystemExit(ae)
+            sys.exit()
         except FileNotFoundError as fe:
             print("Exception occurred! File Not found at :", envFilePath)
             SystemExit(fe)
+            sys.exit()
         except Exception as e:
             print("Exception occurred!")
             SystemExit(e)
+            sys.exit()
 
     def load_path(self):
         t = ('data',
@@ -418,9 +441,11 @@ class RequestStrategyByREST(RequestStrategy):
         except AttributeError as ae:
             print("Exception occurred! please check if systemName, interfaceName, env is given properly")
             SystemExit(ae)
+            sys.exit()
         except Exception as e:
             print("Exception occurred at get_request_url()")
             SystemExit(e)
+            sys.exit()
 
     def post_request_url(self):
         try:
@@ -444,9 +469,11 @@ class RequestStrategyByREST(RequestStrategy):
         except AttributeError as ae:
             print("Exception occurred! please check if systemName, interfaceName, env is given properly")
             SystemExit(ae)
+            sys.exit()
         except Exception as e:
             print("Exception occurred at post_request_url()")
             SystemExit(e)
+            sys.exit()
 
     def get_query_parameter(self):
         queryString = None

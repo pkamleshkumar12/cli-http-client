@@ -1,6 +1,6 @@
 import json
 import csv
-
+import sys
 
 class IOService:
     def __init__(self):
@@ -19,6 +19,7 @@ def load_json(filePath):
     except FileNotFoundError as fnf_error:
         print('Could not open json file; path:', filePath)
         SystemExit(fnf_error)
+        sys.exit()
 
 
 def load_csv(filePath):
@@ -33,6 +34,7 @@ def load_csv(filePath):
     except FileNotFoundError as fnf_error:
         print('Could not open csv file; path:', filePath)
         SystemExit(fnf_error)
+        sys.exit()
 
 
 def load_xml(filePath):
@@ -44,3 +46,4 @@ def load_xml(filePath):
         print('Could not open xml file; path:', filePath)
         print(fnf_error)
         SystemExit(fnf_error)
+        sys.exit()
