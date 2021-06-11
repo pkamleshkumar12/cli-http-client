@@ -19,7 +19,6 @@ if __name__ == "__main__":
         print("Example: python ConfigGen.py EBS_interface_master_list.xlsx generatedConfigs ebs")
         sys.exit(-1)
 
-    print('test')
     t = ('excels', file_name)
     excel_path = os.path.sep.join(t)
     df = pd.read_excel(excel_path, index_col=None)
@@ -137,7 +136,7 @@ read_me_template = """
 """
 
 # md file generation
-t = (dir_name,system_name, 'README.md')
+t = (dir_name, system_name, 'README.md')
 md_file_path = os.path.sep.join(t)
 
 mdFile = MdUtils(file_name=md_file_path, title='Documentation')
@@ -151,7 +150,6 @@ df1 = pd.read_excel(excel_path, index_col=None, engine='openpyxl')
 df1.head()
 
 for index, row in df1.iterrows():
-
     mdFile.write("\n")
     uc_title = " To execute " + row['interface'] + "Use Case UC01"
     mdFile.write("**Command**: python CliHTTPClient.py {} -sn={} -in={} -vn={} -uc={} -env=SIT"

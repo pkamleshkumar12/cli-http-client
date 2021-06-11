@@ -1,0 +1,2 @@
+cron_expression,next_schedule,is_next_schedule,command,rerun
+*/1 * * * *,2021-06-11 17:35:00,1,python CliHTTPClient.py get -sn=EMP -vn=v1 -uc=UC01  -in=getEmpByName -env=sit,1
